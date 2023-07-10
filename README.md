@@ -57,7 +57,7 @@ docker run -p 8000:3000 -e HOST_URL=http://{ your machine IP }:8000 -e MILVUS_UR
 ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
 
 # Command
-docker run --name milvusui -d -p 8000:3000 -e HOST_URL=http://172.27.169.49:8000 -e MILVUS_URL=172.27.169.49:19530 zilliz/attu:latest
+docker run --name milvusui -d -p 8000:3000 -e HOST_URL=http://machip:8000 -e MILVUS_URL=machip:19530 zilliz/attu:latest
 
 # Visit localhost:8000 to view UI 
 
@@ -98,10 +98,6 @@ Awesome Tools
 ```go
 go get -u github.com/milvus-io/milvus-sdk-go/v2
 go get github.com/milvus-io/milvus-sdk-go/v2/client@v2.2.6
-
-
-
-
 ```
 </br>
 
