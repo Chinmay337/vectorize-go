@@ -1,6 +1,17 @@
-# Vector DB
+```
 
-## Running
+ ██████╗  ██████╗     ███╗   ███╗██╗██╗    ██╗   ██╗██╗   ██╗███████╗
+██╔════╝ ██╔═══██╗    ████╗ ████║██║██║    ██║   ██║██║   ██║██╔════╝
+██║  ███╗██║   ██║    ██╔████╔██║██║██║    ██║   ██║██║   ██║███████╗
+██║   ██║██║   ██║    ██║╚██╔╝██║██║██║    ╚██╗ ██╔╝██║   ██║╚════██║
+╚██████╔╝╚██████╔╝    ██║ ╚═╝ ██║██║███████╗╚████╔╝ ╚██████╔╝███████║
+ ╚═════╝  ╚═════╝     ╚═╝     ╚═╝╚═╝╚══════╝ ╚═══╝   ╚═════╝ ╚══════╝
+
+```
+
+# Vector DB Interface
+
+- Running
 
 ```bash
 # Start Milvus DB and MinIO
@@ -36,3 +47,7 @@ go tool pprof -http=:8080 cpu.out
 go tool pprof -http=:8080 mem.out
 
 ```
+
+- Model that supports unknown words https://fasttext.cc/docs/en/faqs.html
+
+- Can use `Whisper.cpp` to add Subtitles to Videos - it can also run in `WASM` in the browser

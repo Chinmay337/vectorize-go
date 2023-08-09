@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/milvus-io/milvus-sdk-go/v2/client"
@@ -25,6 +26,7 @@ func EnablePerformanceServerIfFlag() {
 }
 
 func ConnectVectorDB() client.Client {
+	log.Print("Connecting to VectorDB...")
 	var err error
 	done := make(chan bool)
 
@@ -35,7 +37,8 @@ func ConnectVectorDB() client.Client {
 			return
 		default:
 			// Panic if connection unsuccessful after 5s
-			panic("failed to connect to Milvus. Make sure to run\ndocker-compose up")
+			log.Print("failed to connect to Milvus. Make sure to run\ndocker-compose up\n")
+			os.Exit(1)
 		}
 	}()
 

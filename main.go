@@ -13,23 +13,59 @@ import (
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
 )
 
+var ctx context.Context
+
 func main() {
 	tools.EnablePerformanceServerIfFlag()
 
-	var ctx context.Context
 	ctx = context.Background()
 
 	client := tools.ConnectVectorDB()
 	defer client.Close()
 
-	// ----->>  Converting Raw UTF-8 Strings to Embeddings from a raw UTF-8 file  <<--------
+	/*
+		----->>  Converting Raw UTF-8 Strings to Embeddings from a raw UTF-8 file  <<--------
 
+		- Using FB's Word2Vec model to convert raw UTF-8 strings to embeddings
+		- Train() ->
+			- We load strings from the disk and convert them to Embeddings
+			- Then save embeddings to disk
+
+		- QueryVector() ->
+			- Used to get Similarity for a Word against our Cached Embeddings
+
+	*/
 	vectorize.Train("string-vectors/input", "string-vectors/word_vector.txt")
 	vectorize.QueryVector("cat", "string-vectors/word_vector.txt")
 
+	/*
+
+				------------->> 	  VECTORDB INTERFACE 		 <<----------------
+
+		- Above was an example of how to convert raw UTF-8 strings to embeddings
+		- Embeddings are very useful and are the fundamentals for ML and AI systems
+
+		- This is where a VectorDB fits in
+			- We can use a VectorDB to store embeddings
+			- We can pick and choose models and algorithms to Query a VectorDB for logic such as Similarity Search, Clustering, etc.
+
+
+		- This Repo and below code shows how to
+
+			- Create Collections (think of them as tables) in a VectorDB
+			- Insert Data into a VectorDB
+			- Querying a VectorDB for Similarity Search , Clustering - and using other algos
+			- Searching for a Vector in a VectorDB
+			- Creating Indexes for Tables for efficient querying
+			- Deleting Collections from a VectorDB
+
+	*/
+
+	// Deleting existing Collections to ensure a fresh Vector DB
 	vectordb.DeleteAllCollections(client, ctx)
 
 	// ------------>  CREATING COLLECTIONS  <------------
+
 	_ = vectordb.NewCollectionBuilder().
 		WithName("words").
 		WithDescription("collection of words").
@@ -39,9 +75,9 @@ func main() {
 		).
 		Create(client, ctx)
 
-	// ------------>  INSERTING into a Collection   <------------
+	// ------------>  INSERTING INTO COLLECTIONS  <------------
 
-	// Example using Raw Embeddings
+	// Using Raw Embeddings
 
 	words := []string{"word1", "word2", "word3", "cat", "dog"}
 	embeddings := [][]float32{
@@ -101,7 +137,8 @@ go-torch -u http://localhost:6060/
 
 go tool pprof -seconds 30 http://localhost:6060/debug/pprof/profile
 
-For Web UI Viz
+- For Web UI Vizualization :
+
 go tool pprof -http=localhost:8080 http://localhost:6060/debug/pprof/profile
 
 For Memory Profile with Web UI Viz

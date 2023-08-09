@@ -1,8 +1,13 @@
+```bash
+██╗   ██╗███████╗ ██████╗████████╗ ██████╗ ██████╗ ██████╗ ██████╗
+██║   ██║██╔════╝██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗██╔══██╗██╔══██╗
+██║   ██║█████╗  ██║        ██║   ██║   ██║██████╔╝██║  ██║██████╔╝
+╚██╗ ██╔╝██╔══╝  ██║        ██║   ██║   ██║██╔══██╗██║  ██║██╔══██╗
+ ╚████╔╝ ███████╗╚██████╗   ██║   ╚██████╔╝██║  ██║██████╔╝██████╔╝
+  ╚═══╝  ╚══════╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═════╝
+```
+
 # Vector DB - Concepts and Use Cases
-
-- Model that supports unknown words https://fasttext.cc/docs/en/faqs.html
-
-- Can use `Whisper.cpp` to add Subtitles to Videos - it can also run in `WASM` in the browser
 
 ## Key Concepts
 
@@ -11,7 +16,7 @@
 </br>
 
 ```
-Milvus is an open-source vector database that provides state-of-the-art similarity search and analysis capabilities.
+Milvus is an open-source vector database that provides that can store embeddings and provides out-of-the-box similarity search and analysis capabilities.
 
 1. Create Collection
 2. Insert Vectors

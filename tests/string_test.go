@@ -1,15 +1,17 @@
-package vectorize
+package tests
 
 import (
 	"testing"
+
+	"milvus/vectorize"
 
 	"milvus/errors"
 )
 
 const (
-	validInputPath = "../tests/mockdata/testdata"
-	emptyInputPath = "../tests/mockdata/empty"
-	validModelPath = "../tests/mockdata/word_vector.txt"
+	validInputPath = "mockdata/testdata"
+	emptyInputPath = "mockdata/empty"
+	validModelPath = "mockdata/word_vector.txt"
 	unknownPath    = "imaginary/path/to/invalid/input.txt"
 )
 
@@ -49,7 +51,7 @@ func TestTrain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Train(tt.inputPath, tt.outputPath)
+			err := vectorize.Train(tt.inputPath, tt.outputPath)
 			if !tt.expectedErrFn(err) {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -77,7 +79,7 @@ func TestQueryVector(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := QueryVector(tt.word, tt.inputPath)
+			err := vectorize.QueryVector(tt.word, tt.inputPath)
 			if !tt.expectedErrFn(err) {
 				t.Errorf("unexpected error: %v", err)
 			}
