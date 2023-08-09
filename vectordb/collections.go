@@ -10,43 +10,7 @@ import (
 	"github.com/milvus-io/milvus-sdk-go/v2/entity"
 )
 
-type CollectionParams struct {
-	CollectionName     string
-	Description        string
-	Fields             []*entity.Field
-	EnableDynamicField bool
-	ShardNum           int32
-}
 
-func CreateCollectionFromStruct(milvusClient client.Client, params CollectionParams, ctx context.Context) {
-	schema := &entity.Schema{
-		CollectionName:     params.CollectionName,
-		Description:        params.Description,
-		Fields:             params.Fields,
-		EnableDynamicField: params.EnableDynamicField,
-	}
-	err := milvusClient.CreateCollection(
-		ctx, // ctx
-		schema,
-		params.ShardNum, // shardNum
-	)
-	if err != nil {
-		log.Fatal("failed to create collection:", err.Error())
-	}
-	fmt.Printf("Successfully created collection %s\n", params.CollectionName)
-}
-
-func DeleteCollection(milvusClient client.Client, collection string, ctx context.Context) error {
-	err := milvusClient.DropCollection(
-		context.Background(), // ctx
-		collection,           // CollectionName
-	)
-	if err != nil {
-		log.Fatal("fail to drop collection:", err.Error())
-	}
-	fmt.Println("Successfully dropped collection:", collection)
-	return nil
-}
 
 func CreateCollection(milvusClient client.Client, collection string, ctx context.Context) {
 	schema := &entity.Schema{
@@ -84,6 +48,36 @@ func CreateCollection(milvusClient client.Client, collection string, ctx context
 		log.Fatal("failed to create collection:", err.Error())
 	}
 	fmt.Printf("Successfully created collection %s\n", collection)
+}
+
+func DeleteCollection(milvusClient client.Client, collection string, ctx context.Context) error {
+	err := milvusClient.DropCollection(
+		context.Background(), // ctx
+		collection,           // CollectionName
+	)
+	if err != nil {
+		log.Fatal("fail to drop collection:", err.Error())
+	}
+	fmt.Println("Successfully dropped collection:", collection)
+	return nil
+}
+
+func DeleteAllCollections(milvusClient client.Client, ctx context.Context) error {
+	collections, err := milvusClient.ListCollections(ctx)
+	if err != nil {
+		log.Fatal("failed to list collections:", err.Error())
+	}
+	for _, collection := range collections {
+		err = milvusClient.DropCollection(
+			ctx, // ctx
+			collection.Name, // CollectionName
+		)
+		if err != nil {
+			log.Fatal("fail to drop collection:", err.Error())
+		}
+		fmt.Println("Successfully dropped collection:", collection.Name)
+	}
+	return nil
 }
 
 func InsertRawVectorIntoCollection(milvusClient client.Client, collection string, ctx context.Context) {

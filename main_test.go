@@ -5,8 +5,8 @@ import (
 )
 
 func BenchmarkConnect(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		Connect()
+	     for i := 0; i < b.N; i++ {
+	   	Connect()
 	}
 }
 

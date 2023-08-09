@@ -1,8 +1,11 @@
 package vectorize
 
 import (
-	"log"
+	"fmt"
 	"os"
+
+	stdErrors "errors"
+	"milvus/errors"
 
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
@@ -11,84 +14,80 @@ import (
 	"github.com/ynqa/wego/pkg/search"
 )
 
-func Train() error {
+func Train(inputPath string, outputPath string) error {
+	fmt.Printf("Training data from : %s\n", inputPath)
+
+	fileInfo, err := os.Stat(inputPath)
+	if err != nil {
+		if stdErrors.Is(err, os.ErrNotExist) {
+			return errors.FileNotFound(inputPath, err) // here 'errors' refers to your custom package
+		}
+		return errors.FileLoadingError(inputPath, err)
+	}
+
+	// Check if the input file is empty.
+	fmt.Println("File size is ", fileInfo.Size())
+	if fileInfo.Size() == 0 {
+		return errors.FileEmpty(inputPath, stdErrors.New("Empty File"))
+	}
+
 	model, err := word2vec.New(
 		word2vec.Window(5),
 		word2vec.Model(word2vec.Cbow),
 		word2vec.Optimizer(word2vec.NegativeSampling),
 		word2vec.NegativeSampleSize(5),
-		word2vec.Verbose(),
 	)
 	if err != nil {
-		// failed to create word2vec.
+		fmt.Printf("Failed to Load model: %s\n", err)
+		return errors.ModelLoadingError(inputPath, err)
+
 	}
 
-	input, _ := os.Open("string-vectors/input")
+	input, _ := os.Open(inputPath)
+	if err != nil {
+		return errors.FileLoadingError(inputPath, err)
+	}
 	defer input.Close()
 	if err = model.Train(input); err != nil {
 		// failed to train.
+		fmt.Printf("Error training model: %s\n", err)
 	}
 
 	// write word vector to a file
-	output, err := os.Create("string-vectors/word_vector.txt")
+	output, err := os.Create(outputPath)
 	if err != nil {
-		log.Fatal(err)
+		return errors.FileCreationErr(inputPath, err)
 	}
 	defer output.Close()
 
 	// Save Trained Model to Disk
 	model.Save(output, vector.Agg)
 
-	// write word vector to stdout
-	// model.Save(os.Stdin, vector.Agg)
-
-	// print vectors for all words
-	// for _, word := range []string{"english", "hindi", "dog", "cat", "sanskrit", "memes", "lithuania", "darwin", "marathi", "german", "italian"} {
-	// 	vector := model.WordVector(word)
-	// 	if err != nil {
-	// 		fmt.Printf("Error getting vector for word %s: %s\n", word, err)
-	// 		continue
-	// 	}
-	// 	fmt.Printf("Vector for word %s: %v\n", word, vector)
-	// }
+	fmt.Printf("Successfully trained and saved model to %s\n", outputPath)
 
 	return nil
 }
 
-func QueryVector(word string) error {
-	input, err := os.Open("string-vectors/word_vector.txt")
+func QueryVector(word string, inputPath string) error {
+	fmt.Printf("Querying similarity for word: %s\n", word)
+
+	input, err := os.Open(inputPath)
 	if err != nil {
-		log.Fatal(err)
+		return errors.FileCreationErr(inputPath, err)
 	}
 	defer input.Close()
 	embs, err := embedding.Load(input)
 	if err != nil {
-		log.Fatal(err)
+		return errors.FileLoadingError(inputPath, err)
 	}
 	searcher, err := search.New(embs...)
 	if err != nil {
-		log.Fatal(err)
+		return errors.ModelSearchError(inputPath, err)
 	}
 	neighbors, err := searcher.SearchInternal(word, 10)
 	if err != nil {
-		log.Fatal(err)
+		return errors.ModelSearchError(inputPath, err)
 	}
 	neighbors.Describe()
 	return nil
 }
-
-// func VectorizeString(word string) ([]float64, error) {
-// 	model, err := word2vec.Load("path/to/trained/model")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	vector, err := model.WordVector(word)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	fmt.Println(vector) // print the vector to the console
-
-// 	return vector, nil
-// }

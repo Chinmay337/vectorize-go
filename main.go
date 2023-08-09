@@ -19,16 +19,19 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
-	fmt.Println("Hello World")
+	fmt.Println("Vector DB Golang Interface")
 	var ctx context.Context
 	ctx = context.Background()
 	client := Connect()
 	defer client.Close()
 
 	// add timing logs between every function call
+	vectorize.Train("string-vectors/input", "string-vectors/word_vector.txt")
+	vectorize.QueryVector("cat", "string-vectors/word_vector.txt")
 
-	vectorize.Train()
-	vectorize.QueryVector("cat")
+	vectordb.DeleteAllCollections(client, ctx)
+
+	// ====================>>>>>  CREATING COLLECTION
 
 	fields := []*entity.Field{
 		{
@@ -44,8 +47,7 @@ func main() {
 			Name:     "embedding",
 			DataType: entity.FieldTypeFloatVector,
 			TypeParams: map[string]string{
-				"dim": "300", // adjust this to match the dimensionality of your word embeddings
-
+				"dim": "3", // adjust this to match the dimensionality of your word embeddings
 			},
 		},
 	}
@@ -58,45 +60,83 @@ func main() {
 		ShardNum:           2,
 	}
 
-	vectordb.CreateCollectionFromStruct(client, params, ctx)
+	_ = vectordb.CreateCollectionFromStruct(client, params, ctx)
 
-	startTime := time.Now()
-	vectordb.CreateCollection(client, "books", ctx)
-	LogTime(startTime, "CreateCollection")
+	// ====================>>>>>  INSERTING into a Collection
 
-	startTime = time.Now()
-	vectordb.InsertRawVectorIntoCollection(client, "books", ctx)
-	LogTime(startTime, "InsertIntoCollection")
+	// Assuming using sample embeddings:
+	words := []string{"word1", "word2", "word3", "cat", "dog"}
+	embeddings := [][]float32{
+		{0.1, 0.2, 0.3}, // embedding for word1
+		{0.4, 0.5, 0.6}, // embedding for word2
+		{0.7, 0.8, 0.9}, // embedding for word3
+		{0.2, 0.2, 0.7}, // embedding for cat
+		{0.2, 0.2, 0.8}, // embedding for dog
+	}
 
-	startTime = time.Now()
-	vectordb.CreateIndex(client, "books", "book_intro", entity.L2, 1024, ctx)
-	LogTime(startTime, "CreateIndex")
+	wordColumn := entity.NewColumnVarChar("word", words)
+	embeddingColumn := entity.NewColumnFloatVector("embedding", 3, embeddings) // 3 is the dimensionality of the embeddings
 
-	startTime = time.Now()
-	vectordb.LoadCollection(client, "books", ctx)
-	LogTime(startTime, "LoadCollection")
+	// Defining sample Insert Params
+	insertParams := vectordb.InsertParams{
+		CollectionName: "words",
+		PartitionName:  "", // specify partition name if needed
+		Columns: map[string]entity.Column{
+			"word":      wordColumn,
+			"embedding": embeddingColumn,
+		},
+	}
 
-	startTime = time.Now()
-	vectordb.ConductSearch(client, "books", []string{"book_id"}, []float32{0.1, 0.2}, 2, ctx)
-	LogTime(startTime, "ConductSearch")
+	// Inserting into the Collection
+	vectordb.InsertData(client, insertParams, ctx)
 
-	startTime = time.Now()
-	vectordb.DeleteCollection(client, "books", ctx)
-	vectordb.DeleteCollection(client, "words", ctx)
-	LogTime(startTime, "DeleteCollection")
+	// INSERTION DONE ^^^^
 
-	// }
+	// ====================>>>>>  Searching from a Collection
+	// Load Collection
+	vectordb.CreateIndex(client, "words", "embedding", entity.L2, 1024, ctx)
+	vectordb.LoadCollection(client, "words", ctx)
+
+	fmt.Println("Querying Collection")
+	vectordb.QueryCollection(client, "words", "word not in ['cat', 'dog']", []string{"word"}, ctx)
+
+	fmt.Print("\n\nSearching Collection\n\n")
+
+	vectordb.SearchIndexFromCollection(client, "words", "embedding", []entity.Vector{entity.FloatVector([]float32{0.2, 0.2, 0.8})}, []string{"word"}, 3, ctx)
+
+	fmt.Print("\n\nSearching Done\n\n")
 
 	for {
 		// Keep App Running - view profile at http://localhost:6060/debug/pprof/
+		// Ask user to press enter to exit
+		var input string
+		fmt.Println("Press Enter to exit")
+		fmt.Scanln(&input)
+		break
 	}
 }
 
 func Connect() client.Client {
+	var err error
+	done := make(chan bool)
+
+	go func() {
+		time.Sleep(10 * time.Second)
+		select {
+		case <-done:
+			// If done is closed, it means the function has finished successfully
+			return
+		default:
+			// If done is not closed after 5 seconds, panic
+			panic("failed to connect to Milvus. Make sure to run\ndocker-compose up")
+		}
+	}()
+
 	milvusClient, err := client.NewGrpcClient( // Max 65,536 connections
 		context.Background(), // ctx
 		"localhost:19530",    // addr
 	)
+	close(done)
 	if err != nil {
 		log.Fatal("failed to connect to Milvus:", err.Error())
 	}
@@ -111,7 +151,8 @@ func LogTime(startTime time.Time, functionName string) {
 
 /*
 
-Can also do
+BENCHMARKING
+
 go build -gcflags '-m -l' main.go
 
 go-torch -u http://localhost:6060/
