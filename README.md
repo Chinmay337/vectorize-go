@@ -51,3 +51,5 @@ go tool pprof -http=:8080 mem.out
 - Model that supports unknown words https://fasttext.cc/docs/en/faqs.html
 
 - Can use `Whisper.cpp` to add Subtitles to Videos - it can also run in `WASM` in the browser
+
+- Shadow Art ASCII :) https://patorjk.com/software/taag/#p=display&h=1&v=1&f=ANSI%20Shadow&t=GO%20milvus
