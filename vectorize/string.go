@@ -26,7 +26,6 @@ func Train(inputPath string, outputPath string) error {
 	}
 
 	// Check if the input file is empty.
-	fmt.Println("File size is ", fileInfo.Size())
 	if fileInfo.Size() == 0 {
 		return errors.FileEmpty(inputPath, stdErrors.New("Empty File"))
 	}

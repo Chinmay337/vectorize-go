@@ -71,6 +71,31 @@ func CreateCollectionFromStruct(milvusClient client.Client, params CollectionPar
 	return nil
 }
 
-// func SearchCollection(milvusClient client.Client, params CollectionParams, ctx context.Context) error {
-
+// fields := []*entity.Field{
+// 	{
+// 		Name:     "word",
+// 		DataType: entity.FieldTypeVarChar,
+// 		TypeParams: map[string]string{
+// 			"max_length": "100", // adjust this to the maximum length of your words
+// 		},
+// 		PrimaryKey: true,
+// 		AutoID:     false,
+// 	},
+// 	{
+// 		Name:     "embedding",
+// 		DataType: entity.FieldTypeFloatVector,
+// 		TypeParams: map[string]string{
+// 			"dim": "3", // adjust this to match the dimensionality of your word embeddings
+// 		},
+// 	},
 // }
+
+// params := vectordb.CollectionParams{
+// 	CollectionName:     "words",
+// 	Description:        "Word embeddings",
+// 	Fields:             fields,
+// 	EnableDynamicField: true,
+// 	ShardNum:           2,
+// }
+
+// _ = vectordb.CreateCollectionFromStruct(client, params, ctx)
